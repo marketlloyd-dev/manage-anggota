@@ -1,4 +1,3 @@
-// app/api/chat/[divisi]/events/route.ts
 import { listBlobData } from '@/lib/blob-helpers';
 
 export async function GET(
@@ -6,6 +5,7 @@ export async function GET(
   context: { params: Promise<{ divisi: string }> }
 ) {
   const { divisi } = await context.params;
+
   const stream = new ReadableStream({
     async start(controller) {
       let lastTimestamp = 0;
@@ -22,9 +22,14 @@ export async function GET(
       sendMessages();
       const interval = setInterval(sendMessages, 2000);
       req.signal.addEventListener('abort', () => clearInterval(interval));
-    }
+    },
   });
+
   return new Response(stream, {
-    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' }
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
   });
 }
