@@ -1,32 +1,26 @@
-import { setBlobData, listBlobData } from '@/lib/blob-helpers';
-import { NextResponse } from 'next/server';
+// app/api/chat/[divisi]/events/route.ts
+import { listBlobData } from '@/lib/blob-helpers';
 
-/**
- * POST /api/chat/[divisi]
- * Mengirim pesan chat ke room divisi tertentu
- */
-export async function POST(
-  req: Request,
-  { params }: { params: { divisi: string } }
-) {
-  try {
-    const { user, text } = await req.json();
-    if (!user || !text) {
-      return NextResponse.json({ error: 'user dan text wajib' }, { status: 400 });
+export async function GET(req: Request, { params }: { params: { divisi: string } }) {
+  const stream = new ReadableStream({
+    async start(controller) {
+      let lastTimestamp = 0;
+      const sendMessages = async () => {
+        const msgs = await listBlobData<any>(`chat/${params.divisi}/`);
+        const newMsgs = msgs
+          .filter(m => m.timestamp > lastTimestamp)
+          .sort((a, b) => a.timestamp - b.timestamp);
+        if (newMsgs.length > 0) {
+          controller.enqueue(`data: ${JSON.stringify(newMsgs)}\n\n`);
+          lastTimestamp = newMsgs[newMsgs.length - 1].timestamp;
+        }
+      };
+      sendMessages();
+      const interval = setInterval(sendMessages, 2000);
+      req.signal.addEventListener('abort', () => clearInterval(interval));
     }
-
-    const msg = {
-      user,
-      text,
-      timestamp: Date.now(),
-    };
-
-    // Simpan pesan sebagai blob terpisah dengan nama file timestamp (agar urut dan unik)
-    await setBlobData(`chat/${params.divisi}/${Date.now()}.json`, msg);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Gagal kirim chat:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+  });
+  return new Response(stream, {
+    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' }
+  });
 }
