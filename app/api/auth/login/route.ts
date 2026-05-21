@@ -10,8 +10,18 @@ export async function POST(req: Request) {
     if (!user || user.password !== password) {
       return NextResponse.json({ error: 'Login gagal' }, { status: 401 });
     }
-    const token = await createToken({ email: user.email, role: user.role, divisi: user.divisi });
-    cookies().set('token', token, { httpOnly: true, secure: true, sameSite: 'strict', path: '/' });
+    const token = await createToken({
+      email: user.email,
+      role: user.role,
+      divisi: user.divisi,
+    });
+    const cookieStore = await cookies();
+    cookieStore.set('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Login error:', error);
