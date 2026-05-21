@@ -1,10 +1,11 @@
-import { getBlobData, setBlobData } from '@/lib/blob-helpers';
+import { getData, setData } from '@/lib/data-helpers';
 import { getUserFromToken } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const laporan = await getBlobData<any[]>('laporan.json');
-  return Response.json(laporan || []);
+  const laporan = await getData<any[]>('laporan');
+  return NextResponse.json(laporan || []);
 }
 
 export async function POST(req: Request) {
@@ -13,15 +14,15 @@ export async function POST(req: Request) {
   const { divisi, isi } = await req.json();
   const id = Date.now().toString();
   const laporanItem = { id, divisi, penulis: user.email, isi, timestamp: Date.now(), status: 'baru' };
-  const laporan = (await getBlobData<any[]>('laporan.json')) || [];
+  const laporan = (await getData<any[]>('laporan')) || [];
   laporan.push(laporanItem);
-  await setBlobData('laporan.json', laporan);
-  
+  await setData('laporan', laporan);
+
   // Notifikasi ke ketua
   const notif = { id, pesan: `Laporan baru dari divisi ${divisi}`, dibaca: false, timestamp: Date.now() };
-  const notifs = (await getBlobData<any[]>('notif_ketua.json')) || [];
+  const notifs = (await getData<any[]>('notif_ketua')) || [];
   notifs.push(notif);
-  await setBlobData('notif_ketua.json', notifs);
-  
+  await setData('notif_ketua', notifs);
+
   return NextResponse.json({ success: true });
 }

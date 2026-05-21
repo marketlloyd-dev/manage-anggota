@@ -1,10 +1,11 @@
-import { getBlobData, setBlobData } from '@/lib/blob-helpers';
+import { getData, setData } from '@/lib/data-helpers';
 import { getUserFromToken } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const meetings = await getBlobData<any[]>('absensi_meetings.json');
-  return Response.json(meetings || []);
+  const meetings = await getData<any[]>('absensi_meetings');
+  return NextResponse.json(meetings || []);
 }
 
 export async function POST(req: Request) {
@@ -14,9 +15,9 @@ export async function POST(req: Request) {
   }
   const { title, date } = await req.json();
   const meeting = { id: Date.now().toString(), title, date };
-  const meetings = (await getBlobData<any[]>('absensi_meetings.json')) || [];
+  const meetings = (await getData<any[]>('absensi_meetings')) || [];
   meetings.push(meeting);
-  await setBlobData('absensi_meetings.json', meetings);
+  await setData('absensi_meetings', meetings);
   return NextResponse.json({ success: true });
 }
 
@@ -24,9 +25,10 @@ export async function PUT(req: Request) {
   const user = await getUserFromToken();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { meetingId } = await req.json();
-  // Ambil atau buat absensi per meeting
-  const absensi = (await getBlobData<Record<string, boolean>>(`absensi_${meetingId}.json`)) || {};
+  // Simpan per meeting sebagai hash di key terpisah
+  const key = `absensi:${meetingId}`;
+  const absensi = (await getData<Record<string, boolean>>(key)) || {};
   absensi[user.email] = true;
-  await setBlobData(`absensi_${meetingId}.json`, absensi);
+  await setData(key, absensi);
   return NextResponse.json({ success: true });
 }

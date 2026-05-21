@@ -1,14 +1,15 @@
-import { getBlobData, setBlobData } from '@/lib/blob-helpers';
+import { getData, setData } from '@/lib/data-helpers';
 import { getUserFromToken } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const user = await getUserFromToken();
   if (!user || !['ketua', 'bendahara'].includes(user.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
-  const data = await getBlobData<any[]>('keuangan.json');
-  return Response.json(data || []);
+  const data = await getData<any[]>('keuangan');
+  return NextResponse.json(data || []);
 }
 
 export async function POST(req: Request) {
@@ -18,8 +19,8 @@ export async function POST(req: Request) {
   }
   const { jumlah, keterangan } = await req.json();
   const entry = { jumlah, keterangan, timestamp: Date.now() };
-  const current = (await getBlobData<any[]>('keuangan.json')) || [];
+  const current = (await getData<any[]>('keuangan')) || [];
   current.push(entry);
-  await setBlobData('keuangan.json', current);
-  return Response.json({ success: true });
+  await setData('keuangan', current);
+  return NextResponse.json({ success: true });
 }
