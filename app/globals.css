@@ -2,8 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  background-color: #051912; /* himmah-900 */
+  background-color: #051912;
   color: white;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0D261C;
+}
+::-webkit-scrollbar-thumb {
+  background: #1A4C39;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #319B72;
+}
+
+/* React Big Calendar overrides */
+.rbc-calendar {
+  color: white;
+}
+.rbc-toolbar button {
+  color: white !important;
+  background: #0D261C !important;
+  border-color: #1A4C39 !important;
+}
+.rbc-toolbar button:hover {
+  background: #1A4C39 !important;
+}
+.rbc-toolbar button.rbc-active {
+  background: #319B72 !important;
+  border-color: #319B72 !important;
+}
+.rbc-event {
+  background-color: #319B72 !important;
+  border-radius: 8px !important;
+}
+.rbc-today {
+  background-color: rgba(49,155,114,0.15) !important;
+}
+.rbc-off-range-bg {
+  background: #0D261C !important;
 }

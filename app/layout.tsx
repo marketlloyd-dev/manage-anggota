@@ -2,7 +2,10 @@ import './globals.css';
 import { ReactNode } from 'react';
 import AnimatedBackground from '@/components/AnimatedBackground';
 
-export const metadata = { title: 'Himmah NW Komisariat', description: 'Manajemen Organisasi' };
+export const metadata = {
+  title: 'Himmah NW Komisariat',
+  description: 'Manajemen Organisasi Himmah NW Komisariat STMIK Syaikh Zainuddin NW Anjani',
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
