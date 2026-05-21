@@ -18,9 +18,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   const { jumlah, keterangan } = await req.json();
-  const entry = { jumlah, keterangan, timestamp: Date.now() };
   const current = (await getData<any[]>('keuangan')) || [];
-  current.push(entry);
+  current.push({ jumlah, keterangan, timestamp: Date.now() });
   await setData('keuangan', current);
   return NextResponse.json({ success: true });
 }

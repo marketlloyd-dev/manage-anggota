@@ -13,16 +13,13 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { divisi, isi } = await req.json();
   const id = Date.now().toString();
-  const laporanItem = { id, divisi, penulis: user.email, isi, timestamp: Date.now(), status: 'baru' };
+  const item = { id, divisi, penulis: user.email, isi, timestamp: Date.now(), status: 'baru' };
   const laporan = (await getData<any[]>('laporan')) || [];
-  laporan.push(laporanItem);
+  laporan.push(item);
   await setData('laporan', laporan);
 
-  // Notifikasi ke ketua
-  const notif = { id, pesan: `Laporan baru dari divisi ${divisi}`, dibaca: false, timestamp: Date.now() };
   const notifs = (await getData<any[]>('notif_ketua')) || [];
-  notifs.push(notif);
+  notifs.push({ id, pesan: `Laporan baru dari ${divisi}`, dibaca: false, timestamp: Date.now() });
   await setData('notif_ketua', notifs);
-
   return NextResponse.json({ success: true });
 }

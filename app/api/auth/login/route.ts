@@ -7,18 +7,24 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email dan password wajib' }, { status: 400 });
+    }
     const user = await getData<any>(`user:${email}`);
     if (!user || user.password !== password) {
       return NextResponse.json({ error: 'Login gagal' }, { status: 401 });
     }
-
     const token = await createToken({ email: user.email, role: user.role, divisi: user.divisi });
     const cookieStore = await cookies();
-    cookieStore.set('token', token, { httpOnly: true, secure: true, sameSite: 'strict', path: '/' });
-
+    cookieStore.set('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+    });
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -9,9 +9,8 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const { title, start, end, divisi } = await req.json();
-  const event = { title, start, end, divisi };
   const current = (await getData<any[]>('kalender')) || [];
-  current.push(event);
+  current.push({ title, start, end, divisi });
   await setData('kalender', current);
   return NextResponse.json({ success: true });
 }

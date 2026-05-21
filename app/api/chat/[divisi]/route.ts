@@ -8,7 +8,6 @@ export async function POST(req: Request, context: { params: Promise<{ divisi: st
   if (!user || !text) {
     return NextResponse.json({ error: 'user dan text wajib' }, { status: 400 });
   }
-  const msg = JSON.stringify({ user, text, timestamp: Date.now() });
-  await lpush(`chat:${divisi}`, msg);
+  await lpush(`chat:${divisi}`, JSON.stringify({ user, text, timestamp: Date.now() }));
   return NextResponse.json({ success: true });
 }

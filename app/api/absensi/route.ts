@@ -25,7 +25,6 @@ export async function PUT(req: Request) {
   const user = await getUserFromToken();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { meetingId } = await req.json();
-  // Simpan per meeting sebagai hash di key terpisah
   const key = `absensi:${meetingId}`;
   const absensi = (await getData<Record<string, boolean>>(key)) || {};
   absensi[user.email] = true;
