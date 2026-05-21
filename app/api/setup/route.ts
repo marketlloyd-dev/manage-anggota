@@ -1,6 +1,7 @@
 import { setBlobData, getBlobData } from '@/lib/blob-helpers';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   try {
     const { name, email, password } = await req.json();
