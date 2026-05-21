@@ -3,35 +3,44 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { email, password, name } = await req.json();
-    const exists = await getBlobData(`users/${email}.json`);
-    if (exists) {
-      return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+    const { name, email, password } = await req.json();
+    if (!name || !email || !password) {
+      return NextResponse.json({ error: 'Nama, email, dan password wajib diisi' }, { status: 400 });
     }
+
+    // Cek apakah email sudah terdaftar
+    const existing = await getBlobData(`users/${email}.json`);
+    if (existing) {
+      return NextResponse.json({ error: 'Email sudah terdaftar' }, { status: 409 });
+    }
+
     const user = {
-      name: name || 'Ketua Umum',
+      name,
       email,
-      password,
+      password, // sebaiknya di-hash nanti, untuk sekarang plaintext
       role: 'ketua',
       divisi: '',
     };
+
+    // Simpan user
     await setBlobData(`users/${email}.json`, user);
 
-    // Inisialisasi divisi jika belum ada
-    const divisi = await getBlobData('divisi.json');
-    if (!divisi) {
-      await setBlobData('divisi.json', [
-        { id: 'penguatan_ideologi', nama: 'Penguatan Ideologi' },
-        { id: 'kehimmawatian', nama: 'Kehimmawatian' },
-        { id: 'teknologi_informasi', nama: 'Teknologi Informasi & Media Sosial' },
-        { id: 'ekonomi_bisnis', nama: 'Pemberdayaan Ekonomi & Bisnis' },
-        { id: 'penelitian_civil_society', nama: 'Penelitian & Pemberdayaan Civil Society' },
-      ]);
-    }
+    // Inisialisasi daftar divisi jika belum ada
+    const divisi = [
+      { id: 'penguatan_ideologi', nama: 'Penguatan Ideologi' },
+      { id: 'kehimmawatian', nama: 'Kehimmawatian' },
+      { id: 'teknologi_informasi', nama: 'Teknologi Informasi & Media Sosial' },
+      { id: 'ekonomi_bisnis', nama: 'Pemberdayaan Ekonomi & Bisnis' },
+      { id: 'penelitian_civil_society', nama: 'Penelitian & Pemberdayaan Civil Society' },
+    ];
+    await setBlobData('divisi.json', divisi);
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
+    return NextResponse.json({ success: true, message: 'Akun ketua berhasil dibuat.' });
+  } catch (error: any) {
     console.error('Setup error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: `Gagal membuat akun: ${error.message || 'Server error'}` },
+      { status: 500 }
+    );
   }
 }
