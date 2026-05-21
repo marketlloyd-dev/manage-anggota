@@ -4,7 +4,8 @@ import { cookies } from 'next/headers';
 const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export async function getUserFromToken() {
-  const token = cookies().get('token')?.value;
+  const cookieStore = await cookies(); // <- tambahkan await di sini
+  const token = cookieStore.get('token')?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret);
