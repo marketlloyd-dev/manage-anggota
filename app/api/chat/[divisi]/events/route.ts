@@ -1,12 +1,16 @@
 // app/api/chat/[divisi]/events/route.ts
 import { listBlobData } from '@/lib/blob-helpers';
 
-export async function GET(req: Request, { params }: { params: { divisi: string } }) {
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ divisi: string }> }
+) {
+  const { divisi } = await context.params;
   const stream = new ReadableStream({
     async start(controller) {
       let lastTimestamp = 0;
       const sendMessages = async () => {
-        const msgs = await listBlobData<any>(`chat/${params.divisi}/`);
+        const msgs = await listBlobData<any>(`chat/${divisi}/`);
         const newMsgs = msgs
           .filter((m: any) => m.timestamp > lastTimestamp)
           .sort((a: any, b: any) => a.timestamp - b.timestamp);

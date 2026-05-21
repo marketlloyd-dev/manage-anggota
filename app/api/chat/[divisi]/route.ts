@@ -1,26 +1,17 @@
-// app/api/chat/[divisi]/events/route.ts
-import { listBlobData } from '@/lib/blob-helpers';
+// app/api/chat/[divisi]/route.ts
+import { setBlobData } from '@/lib/blob-helpers';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: Request, { params }: { params: { divisi: string } }) {
-  const stream = new ReadableStream({
-    async start(controller) {
-      let lastTimestamp = 0;
-      const sendMessages = async () => {
-        const msgs = await listBlobData<any>(`chat/${params.divisi}/`);
-        const newMsgs = msgs
-          .filter(m => m.timestamp > lastTimestamp)
-          .sort((a, b) => a.timestamp - b.timestamp);
-        if (newMsgs.length > 0) {
-          controller.enqueue(`data: ${JSON.stringify(newMsgs)}\n\n`);
-          lastTimestamp = newMsgs[newMsgs.length - 1].timestamp;
-        }
-      };
-      sendMessages();
-      const interval = setInterval(sendMessages, 2000);
-      req.signal.addEventListener('abort', () => clearInterval(interval));
-    }
-  });
-  return new Response(stream, {
-    headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' }
-  });
+export async function POST(
+  req: Request,
+  context: { params: Promise<{ divisi: string }> }
+) {
+  const { divisi } = await context.params;
+  const { user, text } = await req.json();
+  if (!user || !text) {
+    return NextResponse.json({ error: 'user dan text wajib' }, { status: 400 });
+  }
+  const msg = { user, text, timestamp: Date.now() };
+  await setBlobData(`chat/${divisi}/${Date.now()}.json`, msg);
+  return NextResponse.json({ success: true });
 }
